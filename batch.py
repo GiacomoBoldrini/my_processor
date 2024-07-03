@@ -88,14 +88,14 @@ if __name__ == "__main__":
             new_chunks[i]["weight"] = 1
 
     # Select only chunks we want to run on
-    max_chunks_per_dataset = 300
+    max_chunks_per_dataset = 1e20
     max_chunks = {}
     do_chunks = []
     for i, chunk in enumerate(new_chunks):
         dset = chunk["dataset"]
         # if dset != "DY":
         #     continue
-        fname = chunk["filename"]
+        fname = chunk["filenames"]
         # print(dset)
         if "/store/data" in fname:
             if "Run2018B" not in fname:
@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     # print(len(jobs))
 
-    njobs = 300
+    njobs = 500
     jobs = split_chunks(new_chunks, njobs)
     _jobs = []
     tot_chunks = {}
@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
     folders = []
     pathPython = os.path.abspath(".")
-    pathResults = "/gwdata/users/gpizzati/condor_processor"
+    pathResults = os.path.join(os.getcwd(), "condor_processor")
 
     proc = subprocess.Popen(
         f"rm -r condor_backup {pathResults}/results_backup; mv condor condor_backup; mv {pathResults}/results {pathResults}/results_backup",
@@ -200,6 +200,9 @@ if __name__ == "__main__":
 
         with open(f"{folder}/chunks_job.pkl", "wb") as file:
             file.write(zlib.compress(cloudpickle.dumps(job)))
+            
+        with open(f"{folder}/chunks_job.json", "w") as file:
+            json.dump(job, file, indent=2)
 
         folders.append(folder.split("/")[-1])
 
@@ -207,15 +210,17 @@ if __name__ == "__main__":
     proc.wait()
 
     txtsh = "#!/bin/bash\n"
-    txtsh += "export X509_USER_PROXY=/gwpool/users/gpizzati/.proxy\n"
+    proxy = os.environ["X509_USER_PROXY"]
+    txtsh += f"export X509_USER_PROXY={proxy}\n"
 
-    txtsh += "source /gwpool/users/gpizzati/mambaforge/etc/profile.d/conda.sh\n"
-    txtsh += "source /gwpool/users/gpizzati/mambaforge/etc/profile.d/mamba.sh\n"
-    txtsh += "mamba activate test_uproot\n"
 
-    txtsh += f"export PYTHONPATH={pathPython}:$PYTHONPATH\n"
+    txtsh += "ls\n"
+    # txtsh += "bash install.sh\n"
+    # txtsh += "source start.sh\n"
+
     txtsh += "echo 'which python'\n"
     txtsh += "which python\n"
+    txtsh += "tar -axf data.tar.gz\n"
     txtsh += "time python script_worker.py\n"
     txtsh += f"cp results.pkl {pathResults}/results/results_${1}.pkl\n"
     txtsh += f"ls {pathResults}/results/results_${1}.pkl\n"
@@ -233,18 +238,20 @@ if __name__ == "__main__":
     txtjdl = "universe = vanilla \n"
     txtjdl += "executable = run.sh\n"
     txtjdl += "arguments = $(Folder)\n"
-
+    txtjdl += "request_disk = 3000000\n"
+    txtjdl += "use_x509userproxy = true\n"
     txtjdl += "should_transfer_files = YES\n"
-    txtjdl += "transfer_input_files = $(Folder)/chunks_job.pkl, script_worker.py, ../data/cfg.json\n"
+    txtjdl += "transfer_input_files = $(Folder)/chunks_job.pkl, script_worker.py, ../data.tar.gz, ../framework.py, ../variation.py, ../modules\n"
+    txtjdl += "MY.SingularityImage = \"/eos/user/g/gboldrin/my_processor_image_latest.sif\"\n"
     txtjdl += "output = $(Folder)/out.txt\n"
     txtjdl += "error  = $(Folder)/err.txt\n"
     txtjdl += "log    = $(Folder)/log.txt\n"
     txtjdl += "request_cpus=1\n"
-    txtjdl += (
+    """ txtjdl += (
         "Requirements = "
         + " || ".join([f'(machine == "{machine}")' for machine in machines])
         + "\n"
-    )
+    ) """
     # txtjdl += 'Requirements = (machine == "pccms03.hcms.it") || (machine == "pccms04.hcms.it") || (machine == "pccms14.hcms.it")\n'
     queue = "workday"
     txtjdl += f'+JobFlavour = "{queue}"\n'
@@ -255,5 +262,5 @@ if __name__ == "__main__":
 
     command = f"mkdir -p {pathResults}/results; cd condor/; chmod +x run.sh; cd -"
     command = f"mkdir -p {pathResults}/results; cd condor/; chmod +x run.sh; condor_submit submit.jdl; cd -"
-    proc = subprocess.Popen(command, shell=True)
-    proc.wait()
+    # proc = subprocess.Popen(command, shell=True)
+    # proc.wait()

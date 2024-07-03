@@ -39,7 +39,7 @@ print("awkward version", ak.__version__)
 print("coffea version", coffea.__version__)
 
 
-with open("cfg.json") as file:
+with open("data/cfg.json") as file:
     cfg = json.load(file)
 
 ceval_puid = correctionlib.CorrectionSet.from_file(cfg["puidSF"])
@@ -52,6 +52,7 @@ rochester = getRochester(cfg)
 
 def process(events, **kwargs):
     dataset = kwargs["dataset"]
+    print(f'-------> dataset {dataset}')
     trigger_sel = kwargs.get("trigger_sel", "")
     isData = kwargs.get("is_data", False)
 
@@ -69,7 +70,9 @@ def process(events, **kwargs):
         lumimask = LumiMask(cfg["lumiMask"])
         events = lumi_mask(events, lumimask)
 
+    
     sumw = ak.sum(events.weight)
+    print("Sum weight before cuts: {}".format(sumw))
     nevents = ak.num(events.weight, axis=0)
 
     # pass trigger and flags
@@ -82,7 +85,7 @@ def process(events, **kwargs):
         # each data DataSet has its own trigger_sel
         events = events[eval(trigger_sel)]
 
-    events = jetSel(events)
+    # events = jetSel(events)
 
     events = createLepton(events)
 
@@ -98,7 +101,7 @@ def process(events, **kwargs):
         events = prompt_gen_match_leptons(events)
 
     # FIXME should clean from only tight / loose?
-    events = cleanJet(events)
+    # events = cleanJet(events)
 
     # # Require at least two loose leptons and loose jets
     # events = events[
@@ -127,67 +130,41 @@ def process(events, **kwargs):
         # Jets corrections
 
         # JEC + JER + JES
-        events, variations = correct_jets(events, variations, jec_stack)
+        # events, variations = correct_jets(events, variations, jec_stack)
 
         # puId SF
-        events, variations = puid_sf(events, variations, ceval_puid)
+        # events, variations = puid_sf(events, variations, ceval_puid)
 
         # btag SF
-        events, variations = btag_sf(events, variations, ceval_btag, cfg)
+        # events, variations = btag_sf(events, variations, ceval_btag, cfg)
 
         # Theory unc.
         events, variations = theory_unc(events, variations, cfg)
 
     # Define histograms
     axis = {
-        "njet": hist.axis.Regular(10, 0, 10, name="njet"),
-        "njet_50": hist.axis.Regular(10, 0, 10, name="njet_50"),
-        "mjj": hist.axis.Regular(30, 200, 1500, name="mjj"),
-        "detajj": hist.axis.Regular(30, -10, 10, name="detajj"),
-        "dphijj": hist.axis.Regular(30, -np.pi, np.pi, name="dphijj"),
-        "ptj1": hist.axis.Regular(30, 30, 150, name="ptj1"),
-        "ptj1_check": hist.axis.Variable(
-            [-9999.0, -10, 0] + list(np.linspace(30, 150, 31)), name="ptj1_check"
-        ),
-        "ptj2": hist.axis.Regular(30, 30, 150, name="ptj2"),
-        "etaj1": hist.axis.Regular(30, -5, 5, name="etaj1"),
-        "etaj2": hist.axis.Regular(30, -5, 5, name="etaj2"),
-        "phij1": hist.axis.Regular(30, -np.pi, np.pi, name="phij1"),
-        "phij2": hist.axis.Regular(30, -np.pi, np.pi, name="phij2"),
-        "mll": hist.axis.Regular(20, 91 - 15, 91 + 15, name="mll"),
-        "ptll": hist.axis.Regular(30, 0, 150, name="ptll"),
-        "detall": hist.axis.Regular(20, -10, 10, name="detall"),
-        "dphill": hist.axis.Regular(30, -np.pi, np.pi, name="dphill"),
-        "ptl1": hist.axis.Regular(30, 15, 150, name="ptl1"),
-        "ptl2": hist.axis.Regular(30, 15, 150, name="ptl2"),
-        "etal1": hist.axis.Regular(30, -2.5, 2.5, name="etal1"),
-        "etal2": hist.axis.Regular(30, -2.5, 2.5, name="etal2"),
-        "phil1": hist.axis.Regular(30, -np.pi, np.pi, name="phil1"),
-        "phil2": hist.axis.Regular(30, -np.pi, np.pi, name="phil2"),
-        "dR_l1_jets": hist.axis.Regular(100, -1, 5, name="dR_l1_jets"),
-        "dR_l2_jets": hist.axis.Regular(100, -1, 5, name="dR_l2_jets"),
-        "dR_l1_l2": hist.axis.Regular(100, -1, 5, name="dR_l1_l2"),
+        # "njet": hist.axis.Regular(10, 0, 10, name="njet"),
+        "mll": hist.axis.Regular(50, 60, 180, name="mll"),
+        "ptll": hist.axis.Regular(50, 0, 150, name="ptll"),
+        "detall": hist.axis.Regular(50, -5, 5, name="detall"),
+        "dphill": hist.axis.Regular(50, -np.pi, np.pi, name="dphill"),
+        "ptl1": hist.axis.Regular(50, 15, 150, name="ptl1"),
+        "ptl2": hist.axis.Regular(50, 15, 150, name="ptl2"),
+        "etal1": hist.axis.Regular(50, -2.5, 2.5, name="etal1"),
+        "etal2": hist.axis.Regular(50, -2.5, 2.5, name="etal2"),
+        "phil1": hist.axis.Regular(50, -np.pi, np.pi, name="phil1"),
+        "phil2": hist.axis.Regular(50, -np.pi, np.pi, name="phil2"),
     }
 
     regions = {
-        # "top_cr": 0,
-        # "vv_cr": 0,
-        # "sr": 0,
-        "sr_inc": 0,
-        # "sr_0j": 0,
-        # "sr_1j": 0,
-        # "sr_2j": 0,
-        "sr_geq_1j": 0,
-        "sr_geq_2j": 0,
-        "sr_geq_2j_bveto": 0,
-        "sr_geq_2j_btag": 0,
+        "inclusive": 0,
     }
 
-    btag_regions = {}
+    # btag_regions = {}
 
     default_axis = [
         hist.axis.StrCategory(
-            [f"{region}_{category}" for region in regions for category in ["ee", "mm"]],
+            [f"{region}_{category}" for region in regions for category in ["mm"]],
             name="category",
         ),
         hist.axis.StrCategory(
@@ -214,7 +191,7 @@ def process(events, **kwargs):
         results[dataset_name]["h"] = histos
 
     originalEvents = ak.copy(events)
-    jet_pt_backup = ak.copy(events.Jet.pt)
+    # jet_pt_backup = ak.copy(events.Jet.pt)
 
     # FIXME add FakeW
 
@@ -222,7 +199,7 @@ def process(events, **kwargs):
     # for variation in sorted(list(variations.keys())):
     for variation in sorted(variations.get_variations_all()):
         events = ak.copy(originalEvents)
-        assert ak.all(events.Jet.pt == jet_pt_backup)
+        # assert ak.all(events.Jet.pt == jet_pt_backup)
 
         print(variation)
         # for switch in variations[variation]:
@@ -250,6 +227,7 @@ def process(events, **kwargs):
             )
         events = events[comb]
 
+        """
         # Jet real selections
 
         # resort Jets
@@ -263,10 +241,8 @@ def process(events, **kwargs):
         events["njet"] = ak.num(events.Jet, axis=1)
         events["njet_50"] = ak.num(events.Jet[events.Jet.pt >= 50], axis=1)
         # Define categories
+        """
 
-        events["ee"] = (
-            events.Lepton[:, 0].pdgId * events.Lepton[:, 1].pdgId
-        ) == -11 * 11
         events["mm"] = (
             events.Lepton[:, 0].pdgId * events.Lepton[:, 1].pdgId
         ) == -13 * 13
@@ -279,7 +255,7 @@ def process(events, **kwargs):
             ]
 
         # Analysis level cuts
-        leptoncut = events.ee | events.mm
+        leptoncut = events.mm
 
         # third lepton veto
         leptoncut = leptoncut & (
@@ -300,6 +276,7 @@ def process(events, **kwargs):
 
         events = events[leptoncut]
 
+        """
         # BTag
 
         btag_cut = (
@@ -309,14 +286,17 @@ def process(events, **kwargs):
         )
         events["bVeto"] = ak.num(events.Jet[btag_cut]) == 0
         events["bTag"] = ak.num(events.Jet[btag_cut]) >= 1
+        """
 
         if not isData:
             # Load all SFs
+            
             # FIXME should remove btagSF
-            events["btagSF"] = ak.prod(
-                events.Jet[events.Jet.pt >= 30].btagSF_deepjet_shape, axis=1
-            )
-            events["PUID_SF"] = ak.prod(events.Jet.PUID_SF, axis=1)
+            
+            # events["btagSF"] = ak.prod(
+            #     events.Jet[events.Jet.pt >= 30].btagSF_deepjet_shape, axis=1
+            # )
+            # events["PUID_SF"] = ak.prod(events.Jet.PUID_SF, axis=1)
             events["RecoSF"] = events.Lepton[:, 0].RecoSF * events.Lepton[:, 1].RecoSF
             events["TightSF"] = (
                 events.Lepton[:, 0].TightSF * events.Lepton[:, 1].TightSF
@@ -325,13 +305,13 @@ def process(events, **kwargs):
             events["weight"] = (
                 events.weight
                 * events.puWeight
-                * events.PUID_SF
                 * events.RecoSF
                 * events.TightSF
             )
 
         # Variable definitions
 
+        """
         jets = ak.pad_none(events.Jet, 2)
 
         # Dijet
@@ -346,6 +326,7 @@ def process(events, **kwargs):
         events["etaj2"] = ak.fill_none(jets[:, 1].eta, -9999)
         events["phij1"] = ak.fill_none(jets[:, 0].phi, -9999)
         events["phij2"] = ak.fill_none(jets[:, 1].phi, -9999)
+        """
 
         # Dilepton
         events["mll"] = (events.Lepton[:, 0] + events.Lepton[:, 1]).mass
@@ -361,6 +342,7 @@ def process(events, **kwargs):
         events["phil1"] = events.Lepton[:, 0].phi
         events["phil2"] = events.Lepton[:, 1].phi
 
+        """
         events["dR_l1_jets"] = ak.fill_none(
             ak.min(events.Lepton[:, 0].deltaR(jets[:, :]), axis=1), -1
         )
@@ -368,6 +350,7 @@ def process(events, **kwargs):
             ak.min(events.Lepton[:, 1].deltaR(jets[:, :]), axis=1), -1
         )
         events["dR_l1_l2"] = events.Lepton[:, 0].deltaR(events.Lepton[:, 1])
+        """
 
         # Apply cuts
 
@@ -381,20 +364,22 @@ def process(events, **kwargs):
         # regions["top_cr"] = events.bTag & (abs(events.mll - 91) >= 15)
         # regions["vv_cr"] = events.bVeto & (abs(events.mll - 91) >= 15)
         # regions["sr"] = events.bVeto & (abs(events.mll - 91) < 15)
-        regions["sr_inc"] = abs(events.mll - 91) < 15
+        # regions["sr_inc"] = abs(events.mll - 91) < 15
         # regions["sr_0j"] = (abs(events.mll - 91) < 15) & (events.njet == 0)
         # regions["sr_1j"] = (abs(events.mll - 91) < 15) & (events.njet == 1)
         # regions["sr_2j"] = (abs(events.mll - 91) < 15) & (events.njet == 2)
         # regions["sr_geq_1j"] = (abs(events.mll - 91) < 15) & (events.njet >= 1)
-        regions["sr_geq_2j"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
-        regions["sr_geq_2j_bveto"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
-        regions["sr_geq_2j_btag"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
-        btag_regions["sr_geq_2j_bveto"] = "bVeto"
-        btag_regions["sr_geq_2j_btag"] = "bTag"
+        # regions["sr_geq_2j"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
+        # regions["sr_geq_2j_bveto"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
+        # regions["sr_geq_2j_btag"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
+        regions['inclusive'] = events.mll > 60
+
+        # btag_regions["sr_geq_2j_bveto"] = "bVeto"
+        # btag_regions["sr_geq_2j_btag"] = "bTag"
 
         events[dataset] = ak.ones_like(events.run) == 1.0
 
-        if dataset == "DY":
+        if dataset in ["DYmm", "DYee", "DYtt"] :
             gen_photons = (
                 (events.GenPart.pdgId == 22)
                 & ak.values_astype(events.GenPart.statusFlags & 1, bool)
@@ -403,32 +388,52 @@ def process(events, **kwargs):
                 & (abs(events.GenPart.eta) < 2.6)
             )
             gen_mask = ak.num(events.GenPart[gen_photons]) == 0
-            jet_genmatched = (jets.genJetIdx >= 0) & (
-                jets.genJetIdx < ak.num(events.GenJet)
-            )
-            both_jets_gen_matched = ak.fill_none(
-                jet_genmatched[:, 0] & jet_genmatched[:, 1], False
-            )
-            events["DY_hard"] = gen_mask & both_jets_gen_matched
-            events["DY_PU"] = gen_mask & ~both_jets_gen_matched
-            events["DY_inc"] = gen_mask & events[dataset]
+
+            events[dataset] = gen_mask & events[dataset]
             # DY ptll reweight
-            ceval_ptll = correctionlib.CorrectionSet.from_file(
-                "/gwpool/users/gpizzati/test_processor/my_processor/data/ptll_dy_rwgt.json.gz"
-            )
-            events["rwgt_ptll_ee"] = ceval_ptll["ptll_rwgt_dy_ee"].evaluate(events.ptll)
-            events["rwgt_ptll_mm"] = ceval_ptll["ptll_rwgt_dy_mm"].evaluate(events.ptll)
-            events["weight"] = events.weight * ak.where(
-                events.ee, events.rwgt_ptll_ee, events.rwgt_ptll_mm
-            )
+            # ceval_ptll = correctionlib.CorrectionSet.from_file(
+            #     "/gwpool/users/gpizzati/test_processor/my_processor/data/ptll_dy_rwgt.json.gz"
+            # )
+
+
+            # jet_genmatched = (jets.genJetIdx >= 0) & (
+            #     jets.genJetIdx < ak.num(events.GenJet)
+            # )
+            # both_jets_gen_matched = ak.fill_none(
+            #     jet_genmatched[:, 0] & jet_genmatched[:, 1], False
+            # )
+
+            # events["DY_hard"] = gen_mask & both_jets_gen_matched
+            # events["DY_PU"] = gen_mask & ~both_jets_gen_matched
+            # events["DY_inc"] = gen_mask & events[dataset]
+            # # DY ptll reweight
+            # ceval_ptll = correctionlib.CorrectionSet.from_file(
+            #     "/gwpool/users/gpizzati/test_processor/my_processor/data/ptll_dy_rwgt.json.gz"
+            # )
+            # events["rwgt_ptll_ee"] = ceval_ptll["ptll_rwgt_dy_ee"].evaluate(events.ptll)
+            # events["rwgt_ptll_mm"] = ceval_ptll["ptll_rwgt_dy_mm"].evaluate(events.ptll)
+            # events["weight"] = events.weight * ak.where(
+            #     events.ee, events.rwgt_ptll_ee, events.rwgt_ptll_mm
+            # )
 
         # Fill histograms
         for dataset_name in results:
             for region in regions:
-                for category in ["ee", "mm"]:
+                for category in ["mm"]:
+                 
+                    print(region, category)
                     # Apply mask for specific region, category and dataset_name
                     mask = regions[region] & events[category] & events[dataset_name]
-
+                    results[dataset_name]['nevents'] = len(events[mask])
+                    print("Sum weights after cuts: {}".format(ak.sum(events.weight[mask])))
+                    
+                    sumw_after = ak.sum(events.weight[mask])
+                    
+                    if "sumw_after" not in results[dataset_name].keys():
+                        results[dataset_name]["sumw_after"] = {}
+                    results[dataset_name]["sumw_after"][region + "_mm"] = sumw_after
+                    
+                    """
                     if not isData:
                         # Renorm for btag in region
                         sumw_before_btagsf = ak.sum(events[mask].weight)
@@ -442,12 +447,13 @@ def process(events, **kwargs):
 
                     btag_cut = btag_regions.get(region, dataset_name)
                     mask = mask & events[btag_cut]
+                    """
                     for variable in histos:
                         results[dataset_name]["h"][variable].fill(
                             events[variable][mask],
                             category=f"{region}_{category}",
                             syst=variation,
-                            weight=events.weight_btag[mask],
+                            weight=events.weight[mask],
                         )
 
     return results

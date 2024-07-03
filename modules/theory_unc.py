@@ -1,3 +1,7 @@
+import awkward as ak
+import numpy as np
+import variation as variation_module
+
 def theory_unc(events, variations, cfg):
     doTheoryVariations = cfg.get("do_theory_variations", True)
     if doTheoryVariations:
@@ -15,18 +19,30 @@ def theory_unc(events, variations, cfg):
                 nVariations - 4,
             ]
         ):
-            events[f"weight_qcdScale_{i}"] = events.weight * events.LHEScaleWeight[:, j]
-            variations[f"QCDscale_{i}"] = (
-                ("weight",),
-                (f"weight_qcdScale_{i}",),
+            var_name = f"QCDscale_{i}"
+
+            varied_col = variation_module.Variation.format_varied_column(
+                "weight", var_name
             )
+
+            events[varied_col] = events.weight * events.LHEScaleWeight[:, j]
+
+            variations.register_variation(["weight"], var_name)
+
 
         # Pdf Weights
         nVariations = len(events.LHEPdfWeight[0])
         for i, j in enumerate(range(nVariations)):
-            events[f"weight_pdfWeight_{i}"] = events.weight * events.LHEPdfWeight[:, j]
-            variations[f"PdfWeight_{i}"] = (
-                ("weight",),
-                (f"weight_pdfWeight_{i}",),
+            #events[f"weight_pdfWeight_{i}"] = events.weight * events.LHEPdfWeight[:, j]
+
+            var_name = f"PdfWeight_{i}"
+
+            varied_col = variation_module.Variation.format_varied_column(
+                "weight", var_name
             )
+
+            events[varied_col] = events.weight * events.LHEPdfWeight[:, j]
+
+            variations.register_variation(["weight"], var_name)
+
     return events, variations

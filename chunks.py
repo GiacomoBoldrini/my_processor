@@ -1,6 +1,8 @@
 import json
 from math import ceil
-
+from framework import write_chunks
+import random
+from copy import deepcopy
 
 def create_datasets():
 
@@ -10,38 +12,74 @@ def create_datasets():
         files = json.load(file)
 
     datasets = {
-        "Zjj": {
-            "files": files["EWKZ2Jets_ZToLL_M-50_MJJ-120"]["files"][:],
-            "xs": 1.719,
+        "DYmm": {
+            "files": files["DYJetsToMuMu_M-50"]["files"][:],
+            "xs": 1976.0,
         },
-        "DY": {
-            "files": files["DYJetsToLL_M-50"]["files"][:],
-            "xs": 6077.22,
+        "DYee": {
+            "files": files["DYJetsToEE_M-50"]["files"][:],
+            "xs": 1976.0,
         },
-        "TTTo2L2Nu": {
-            "files": files["TTTo2L2Nu"]["files"][:],
-            "xs": 10,
+        "DYtt": {
+            "files": files["DYJetsToTauTau_M-50_AtLeastOneEorMuDecay"]["files"][:],
+            "xs": 1976.0,
+        },
+        "TTJets": {
+            "files": files["TTJets"]["files"][:],
+            "xs": 1976.0,
         },
         "ST_s-channel": {
             "files": files["ST_s-channel"]["files"][:],
-            "xs": 10,
+            "xs": 1976.0,
         },
-        "ST_t-channel_top": {
-            "files": files["ST_t-channel_top"]["files"][:],
-            "xs": 10,
+        "ST_t-channel_top_5f": {
+            "files": files["ST_t-channel_top_5f"]["files"][:],
+            "xs": 1976.0,
         },
-        "ST_t-channel_antitop": {
-            "files": files["ST_t-channel_antitop"]["files"][:],
-            "xs": 10,
+        "ST_t-channel_antitop_5f": {
+            "files": files["ST_t-channel_antitop_5f"]["files"][:],
+            "xs": 1976.0,
         },
-        "ST_tW_antitop": {
-            "files": files["ST_tW_antitop"]["files"][:],
-            "xs": 10,
+        "ST_tW_antitop_noHad": {
+            "files": files["ST_tW_antitop_noHad"]["files"][:],
+            "xs": 1976.0,
         },
-        "ST_tW_top": {
-            "files": files["ST_tW_top"]["files"][:],
-            "xs": 10,
+        "ST_tW_top_noHad": {
+            "files": files["ST_tW_top_noHad"]["files"][:],
+            "xs": 1976.0,
         },
+        "WW": {
+            "files": files["WW"]["files"][:],
+            "xs": 1976.0,
+        },
+        "ZZ": {
+            "files": files["ZZ"]["files"][:],
+            "xs": 1976.0,
+        },
+        "WZ": {
+            "files": files["WZ"]["files"][:],
+            "xs": 1976.0,
+        },
+        "WJetsToLNu-LO": {
+            "files": files["WJetsToLNu-LO"]["files"][:],
+            "xs": 1976.0,
+        },
+        "WJetsToLNu_1J-LO": {
+            "files": files["WJetsToLNu_1J-LO"]["files"][:],
+            "xs": 1976.0,
+        },
+        "WJetsToLNu_2J-LO": {
+            "files": files["WJetsToLNu_2J-LO"]["files"][:],
+            "xs": 1976.0,
+        },
+        "WJetsToLNu_3J-LO": {
+            "files": files["WJetsToLNu_3J-LO"]["files"][:],
+            "xs": 1976.0,
+        },
+        "GGToLL_M-5To50": {
+            "files": files["GGToLL_M-5To50_TuneCP5_13TeV-pythia8"]["files"][:],
+            "xs": 1976.0,
+        }
     }
 
     for dataset in datasets:
@@ -76,7 +114,7 @@ def create_datasets():
 
 def split_chunks(num_entries):
     max_events = 20_000_000
-    chunksize = 100_000
+    chunksize = 200_000
     max_events = min(num_entries, max_events)
     nIterations = ceil(max_events / chunksize)
     file_results = []
@@ -90,16 +128,18 @@ def split_chunks(num_entries):
 
 
 def create_chunks(datasets):
+    #print(datasets)
     chunks = []
     for dataset in datasets:
-        files_dict = dict(datasets[dataset]["files"])
         dataset_dict = {k: v for k, v in datasets[dataset].items() if k != "files"}
-        for file in files_dict:
-            steps = split_chunks(files_dict[file])
+        for file in datasets[dataset]["files"]:
+            steps = split_chunks(file["nevents"])
             for start, stop in steps:
+                random.shuffle(file['path'])
+                shuffledfiles = deepcopy(file['path'])
                 d = {
                     "dataset": dataset,
-                    "filename": file,
+                    "filenames": shuffledfiles,
                     "start": start,
                     "stop": stop,
                     **dataset_dict,
@@ -111,9 +151,13 @@ def create_chunks(datasets):
 if __name__ == "__main__":
 
     datasets = create_datasets()
+    print("---> Requested datasets: {}".format(datasets.keys()))
     with open("data/dataset.json", "w") as file:
         json.dump(datasets, file, indent=2)
 
     chunks = create_chunks(datasets)
+    print("Split into {} chunks".format(len(chunks)))
     with open("data/chunks.json", "w") as file:
         json.dump(chunks, file, indent=2)
+    write_chunks(chunks, "data/chunks.gz")
+

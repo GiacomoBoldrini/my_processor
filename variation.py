@@ -3,8 +3,8 @@ from functools import wraps
 from typing import NewType
 import awkward as ak
 
-columnType = NewType("columnType", str | tuple[str] | tuple[str, str])
-columnType = str | tuple[str] | tuple[str, str]
+columnType = NewType("columnType", str or tuple[str] or tuple[str, str])
+columnType = str or tuple[str] or tuple[str, str]
 
 
 class Variation:
@@ -134,7 +134,7 @@ class Variation:
     def get_variation_subs(self, variation_name):
         return self.variations_dict[variation_name]
 
-    def get_variations_affecting(self, columns: type[str | list[str]] = "all"):
+    def get_variations_affecting(self, columns: type[str or list[str]] = "all"):
         """
         Returns the list of variations that affect the provided columns
 
@@ -169,7 +169,7 @@ def get_columns(events):
     return columns
 
 
-def vary(reads_columns: type[str | list[str]] = "all"):
+def vary(reads_columns: type[str or list[str]] = "all"):
     def actual_wrapper(func: callable):
         @wraps(func)
         def wrapper_decorator(

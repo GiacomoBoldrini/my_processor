@@ -209,6 +209,6 @@ def convert_latinos_samples():
         json.dump({"headers": headers, "samples": Samples}, file, indent=2)
 
 
-# download_latinos_samples()
+download_latinos_samples()
 # convert_latinos_samples()
-setup_cfg()
+# setup_cfg()

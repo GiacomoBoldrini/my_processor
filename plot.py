@@ -13,7 +13,7 @@ import subprocess
 mpl.use("Agg")
 plt.style.use(hep.style.CMS)
 
-pathResults = "/gwdata/users/gpizzati/condor_processor/results"
+pathResults = "/afs/cern.ch/user/g/gboldrin/my_processor_new/condor_processor/results"
 with open(f"{pathResults}/results_merged.pkl", "rb") as file:
     results = cloudpickle.loads(zlib.decompress(file.read()))
 

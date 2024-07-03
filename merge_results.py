@@ -6,9 +6,14 @@ import subprocess
 import cloudpickle
 import zlib
 
-pathResults = "/gwdata/users/gpizzati/condor_processor/results"
-result_files = glob.glob(f"{pathResults}/results_job_*.pkl")
+# DYbugged = [118, 56, 172, 158, 293]
 
+DYbugged = [14, 171, 199, 234, 289, 46, 69]
+DYttbugged = [325, 353, 37, 413, 416, 488]
+pathResults = "/afs/cern.ch/user/g/gboldrin/my_processor_new/condor_processor/results"
+result_files = glob.glob(f"{pathResults}/results_job*.pkl")
+
+print(result_files)
 
 def read_results(filename):
     with open(filename, "rb") as file:
@@ -26,8 +31,17 @@ errors = []
 for i, result_file in enumerate(result_files[:]):
     result = read_results(result_file)
     partial_results = {
-        k: v for k, v in result["results"].items() if not k.startswith("root://")
+        k: v for k, v in result["results"]["real_results"].items() if not k.startswith("root://")
     }
+    # now delete DY if bugged
+    if result_file.split("/")[-1] in ["results_job_" + str(j) + ".pkl" for j in DYbugged]:
+        print("!! Bugged file")
+        # partial_results = {k : v for k, v in partial_results.items() if k not in ["DYee", "DYmm", "DYtt"]}
+        partial_results = {k : v for k, v in partial_results.items() if k not in ["DYmm"]}
+    if result_file.split("/")[-1] in ["results_job_" + str(j) + ".pkl" for j in DYttbugged]:
+        print("!! Bugged file")
+        # partial_results = {k : v for k, v in partial_results.items() if k not in ["DYee", "DYmm", "DYtt"]}
+        partial_results = {k : v for k, v in partial_results.items() if k not in ["DYtt"]}
     try:
         results = add_dict(results, partial_results)
     except Exception as e:

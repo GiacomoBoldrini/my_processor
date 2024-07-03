@@ -1,6 +1,10 @@
 {
   "year": "2018",
   "tgr_data": {
+    "EleMu": [
+      "Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
+      "Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"
+    ],
     "DoubleMu": [
       "Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8"
     ],
@@ -27,36 +31,36 @@
   ],
   "eleWP": "mvaFall17V2Iso_WP90",
   "muWP": "cut_Tight_HWWW",
-  "leptonSF": "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/lepton_sf.json.gz",
+  "leptonSF": "data/2018/lepton_sf.json.gz",
   "puWeightsKey": "Collisions18_UltraLegacy_goldenJSON",
   "do_theory_variations": false,
+  "btagLoose": 0.049,
+  "btagMedium": 0.2783,
+  "btagTight": 0.71,
   "JME": {
     "jec_stack_names": [
       "Summer19UL18_V5_MC_L1FastJet_AK4PFchs",
       "Summer19UL18_V5_MC_L2Relative_AK4PFchs",
       "Summer19UL18_V5_MC_L3Absolute_AK4PFchs",
       "Summer19UL18_V5_MC_L2L3Residual_AK4PFchs",
-      "Summer19UL18_JRV2_MC_PtResolution_AK4PFchs",
       "Regrouped_Summer19UL18_V5_MC_UncertaintySources_AK4PFchs",
+      "Summer19UL18_JRV2_MC_PtResolution_AK4PFchs",
       "Summer19UL18_JRV2_MC_SF_AK4PFchs"
     ],
     "jec_stack_paths": [
-      "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/jme/Summer19UL18_V5_MC_L1FastJet_AK4PFchs.jec.txt",
-      "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/jme/Summer19UL18_V5_MC_L2Relative_AK4PFchs.jec.txt",
-      "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/jme/Summer19UL18_V5_MC_L3Absolute_AK4PFchs.jec.txt",
-      "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/jme/Summer19UL18_V5_MC_L2L3Residual_AK4PFchs.jec.txt",
-      "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/jme/Summer19UL18_JRV2_MC_PtResolution_AK4PFchs.jr.txt",
-      "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/jme/Regrouped_Summer19UL18_V5_MC_UncertaintySources_AK4PFchs.junc.txt",
-      "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/jme/Summer19UL18_JRV2_MC_SF_AK4PFchs.jrsf.txt"
+      "data/2018/jme/Summer19UL18_V5_MC_L1FastJet_AK4PFchs.jec.txt",
+      "data/2018/jme/Summer19UL18_V5_MC_L2Relative_AK4PFchs.jec.txt",
+      "data/2018/jme/Summer19UL18_V5_MC_L3Absolute_AK4PFchs.jec.txt",
+      "data/2018/jme/Summer19UL18_V5_MC_L2L3Residual_AK4PFchs.jec.txt",
+      "data/2018/jme/Regrouped_Summer19UL18_V5_MC_UncertaintySources_AK4PFchs.junc.txt",
+      "data/2018/jme/Summer19UL18_JRV2_MC_PtResolution_AK4PFchs.jr.txt",
+      "data/2018/jme/Summer19UL18_JRV2_MC_SF_AK4PFchs.jrsf.txt"
     ],
     "junc": "Regrouped_Summer19UL18_V5_MC_UncertaintySources_AK4PFchs"
   },
-  "puidSF": "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/clib/jmar.json.gz",
-  "btagSF": "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/clib/btagging.json.gz",
-  "puWeights": "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/clib/puWeights.json.gz",
-  "lumiMask": "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
-  "rochester_file": "/gwpool/users/gpizzati/test_processor/my_processor/data/2018/rochester/RoccoR2018UL.txt",
-  "btagLoose": 0.0490,
-  "btagMedium": 0.2783,
-  "btagTight": 0.7100
+  "puidSF": "data/2018/clib/jmar.json.gz",
+  "btagSF": "data/2018/clib/btagging.json.gz",
+  "puWeights": "data/2018/clib/puWeights.json.gz",
+  "lumiMask": "data/2018/lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
+  "rochester_file": "data/2018/rochester/RoccoR2018UL.txt"
 }
