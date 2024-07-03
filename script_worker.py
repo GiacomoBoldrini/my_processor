@@ -372,7 +372,7 @@ def process(events, **kwargs):
         # regions["sr_geq_2j"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
         # regions["sr_geq_2j_bveto"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
         # regions["sr_geq_2j_btag"] = (abs(events.mll - 91) < 15) & (events.njet >= 2)
-        regions['inclusive'] = events.mll > 60
+        regions['inclusive'] = events.mll > 60 & events.mll < 180
 
         # btag_regions["sr_geq_2j_bveto"] = "bVeto"
         # btag_regions["sr_geq_2j_btag"] = "bTag"
